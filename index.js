@@ -1,12 +1,17 @@
-const express = require("express");
-const path = require("path");
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import cors from "cors";
+import session from "express-session";
+import dbConnect from "./db/dbConnect.js";
+import UserRouter from "./routes/UserRouter.js";
+import PhotoRouter from "./routes/PhotoRouter.js";
+import AdminRouter from "./routes/AdminRouter.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-const cors = require("cors");
-const session = require("express-session");
-const dbConnect = require("./db/dbConnect");
-const UserRouter = require("./routes/UserRouter");
-const PhotoRouter = require("./routes/PhotoRouter");
-const AdminRouter = require("./routes/AdminRouter");
 
 dbConnect();
 

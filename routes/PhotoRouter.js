@@ -1,10 +1,15 @@
-const express = require("express");
-const path = require("path");
-const multer = require("multer");
-const { v4: uuidv4 } = require("uuid");
-const Photo = require("../db/photoModel");
-const User = require("../db/userModel");
-const { verifyToken } = require("../middleware/auth");
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import multer from "multer";
+import { v4 as uuidv4 } from "uuid";
+import Photo from "../db/photoModel.js";
+import User from "../db/userModel.js";
+import { verifyToken } from "../middleware/auth.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = express.Router();
 
 // Cấu hình multer để lưu ảnh upload vào thư mục images/
@@ -161,4 +166,4 @@ router.post("/new", verifyToken, upload.single("photo"), async (request, respons
   }
 });
 
-module.exports = router;
+export default router;

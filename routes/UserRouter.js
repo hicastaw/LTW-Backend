@@ -1,5 +1,6 @@
-const express = require("express");
-const User = require("../db/userModel");
+import express from "express";
+import User from "../db/userModel.js";
+
 const router = express.Router();
 
 /**
@@ -77,4 +78,4 @@ router.post("/", async (request, response) => {
   }
 });
 
-module.exports = router;
+export default router;

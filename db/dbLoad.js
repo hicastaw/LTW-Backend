@@ -1,11 +1,11 @@
-const mongoose = require("mongoose");
-require("dotenv").config();
+import mongoose from "mongoose";
+import "dotenv/config";
 
-const models = require("../modelData/models.js");
+import models from "../modelData/models.js";
 
-const User = require("../db/userModel.js");
-const Photo = require("../db/photoModel.js");
-const SchemaInfo = require("../db/schemaInfo.js");
+import User from "../db/userModel.js";
+import Photo from "../db/photoModel.js";
+import SchemaInfo from "../db/schemaInfo.js";
 
 const versionString = "1.0";
 
@@ -24,7 +24,7 @@ async function dbLoad() {
   const userModels = models.userListModel();
   const mapFakeId2RealId = {};
   for (const user of userModels) {
-    userObj = new User({
+    const userObj = new User({
       first_name: user.first_name,
       last_name: user.last_name,
       location: user.location,
@@ -54,7 +54,7 @@ async function dbLoad() {
     photoModels.push(...models.photoOfUserModel(id));
   });
   for (const photo of photoModels) {
-    photoObj = await Photo.create({
+    const photoObj = await Photo.create({
       file_name: photo.file_name,
       date_time: photo.date_time,
       user_id: mapFakeId2RealId[photo.user_id],
@@ -91,12 +91,12 @@ async function dbLoad() {
   }
 
   try {
-    schemaInfo = await SchemaInfo.create({
+    const schemaInfo = await SchemaInfo.create({
       version: versionString,
     });
     console.log("SchemaInfo object created with version ", schemaInfo.version);
   } catch (error) {
-    console.error("Error create schemaInfo", reportError);
+    console.error("Error create schemaInfo", error);
   }
   mongoose.disconnect();
 }

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const schemaInfo = new mongoose.Schema({
   version: String,
@@ -7,4 +7,4 @@ const schemaInfo = new mongoose.Schema({
 
 const SchemaInfo = mongoose.model("SchemaInfo", schemaInfo);
 
-module.exports = SchemaInfo;
+export default SchemaInfo;
