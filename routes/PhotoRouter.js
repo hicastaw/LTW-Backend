@@ -25,10 +25,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-/**
- * GET /api/photosOfUser/:id
- * Trả về danh sách ảnh của user kèm comments đã được assemble với user info.
- */
+// GET /api/photosOfUser/:id
 router.get("/photosOfUser/:id", verifyToken, async (request, response) => {
   const { id } = request.params;
 
@@ -89,10 +86,7 @@ router.get("/photosOfUser/:id", verifyToken, async (request, response) => {
   }
 });
 
-/**
- * POST /api/commentsOfPhoto/:photo_id
- * Thêm comment vào ảnh (TH3).
- */
+// POST /api/commentsOfPhoto/:photo_id
 router.post("/commentsOfPhoto/:photo_id", verifyToken, async (request, response) => {
   const { photo_id } = request.params;
   const { comment } = request.body;
@@ -135,10 +129,7 @@ router.post("/commentsOfPhoto/:photo_id", verifyToken, async (request, response)
   }
 });
 
-/**
- * POST /api/photos/new
- * Upload ảnh mới cho user đang đăng nhập (TH3).
- */
+// POST /api/photos/new
 router.post("/new", verifyToken, upload.single("photo"), async (request, response) => {
   if (!request.file) {
     return response.status(400).json({ error: "No photo file provided" });

@@ -5,10 +5,7 @@ import { JWT_SECRET, verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/**
- * GET /api/admin/me
- * Kiểm tra token còn hạn hay không. Trả về thông tin user nếu hợp lệ.
- */
+// GET /api/admin/me
 router.get("/me", verifyToken, async (request, response) => {
   try {
     const user = await User.findById(request.user._id, "_id first_name last_name login_name");
@@ -26,11 +23,7 @@ router.get("/me", verifyToken, async (request, response) => {
   }
 });
 
-/**
- * POST /api/admin/login
- * Đăng nhập user. Body: { login_name, password }
- * Response: { token, _id, first_name, last_name, login_name }
- */
+//POST /api/admin/login
 router.post("/login", async (request, response) => {
   const { login_name, password } = request.body;
 
@@ -45,7 +38,7 @@ router.post("/login", async (request, response) => {
       return response.status(400).json({ error: `No user with login_name '${login_name}'` });
     }
 
-    // Check password (plain text so sánh trực tiếp)
+    // Check password 
     if (user.password && user.password !== password) {
       return response.status(400).json({ error: "Wrong password" });
     }
@@ -72,11 +65,7 @@ router.post("/login", async (request, response) => {
   }
 });
 
-/**
- * POST /api/admin/logout
- * Logout phía client tự xóa token khỏi localStorage.
- * Server chỉ phản hồi OK (stateless JWT không cần server-side invalidation).
- */
+//POST /api/admin/logout
 router.post("/logout", (request, response) => {
   response.json({ message: "Logged out successfully" });
 });
