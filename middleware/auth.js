@@ -3,10 +3,6 @@ import "dotenv/config";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-/**
- * Middleware xác thực JWT token từ header Authorization.
- * Header format: "Bearer <token>"
- */
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   if (typeof authHeader !== "undefined") {

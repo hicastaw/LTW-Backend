@@ -1,18 +1,87 @@
 import express from "express";
+import mongoose from "mongoose";
 import User from "../db/userModel.js";
+import Photo from "../db/photoModel.js";
 
 const router = express.Router();
 
 /**
  * GET /api/user/list
- * Trả về danh sách users với chỉ _id, first_name, last_name (dùng cho sidebar).
+ * Trả về danh sách users với chỉ _id, first_name, last_name, photo_count, comment_count (dùng cho sidebar).
  */
 router.get("/list", async (request, response) => {
   try {
-    const users = await User.find({}, "_id first_name last_name");
-    response.json(users);
+    const users = await User.find({}, "_id first_name last_name").lean();
+    
+    const usersWithCounts = await Promise.all(
+      users.map(async (user) => {
+        const photo_count = await Photo.countDocuments({ user_id: user._id });
+        
+        // Count all comments across all photos authored by this user
+        // Using $unwind to flatten comments, then match user_id
+        const commentAggregation = await Photo.aggregate([
+          { $unwind: "$comments" },
+          { $match: { "comments.user_id": user._id } },
+          { $count: "count" }
+        ]);
+        
+        const comment_count = commentAggregation.length > 0 ? commentAggregation[0].count : 0;
+        
+        return {
+          ...user,
+          photo_count,
+          comment_count,
+        };
+      })
+    );
+
+    response.json(usersWithCounts);
   } catch (err) {
     console.error("Error fetching user list:", err);
+    response.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * GET /api/user/comments/:id
+ * Lấy tất cả bình luận do user có id này viết, kèm theo thông tin bức ảnh.
+ */
+router.get("/comments/:id", async (request, response) => {
+  const { id } = request.params;
+  
+  try {
+    const userId = new mongoose.Types.ObjectId(id);
+    
+    // Tìm tất cả các ảnh có chứa comment của user này
+    const photosWithUserComments = await Photo.find({
+      "comments.user_id": userId
+    });
+    
+    let allUserComments = [];
+    
+    photosWithUserComments.forEach(photo => {
+      // Lọc ra các comments của chính user này
+      const userComments = photo.comments.filter(
+        c => String(c.user_id) === String(userId)
+      );
+      
+      userComments.forEach(comment => {
+        allUserComments.push({
+          _id: comment._id,
+          comment: comment.comment,
+          date_time: comment.date_time,
+          photo: {
+            _id: photo._id,
+            file_name: photo.file_name,
+            user_id: photo.user_id
+          }
+        });
+      });
+    });
+    
+    response.json(allUserComments);
+  } catch (err) {
+    console.error("Error fetching user comments:", err);
     response.status(500).json({ error: "Internal server error" });
   }
 });
