@@ -29,7 +29,7 @@ const upload = multer({ storage });
  * GET /api/photosOfUser/:id
  * Trả về danh sách ảnh của user kèm comments đã được assemble với user info.
  */
-router.get("/photosOfUser/:id", async (request, response) => {
+router.get("/photosOfUser/:id", verifyToken, async (request, response) => {
   const { id } = request.params;
 
   try {

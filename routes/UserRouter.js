@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import User from "../db/userModel.js";
 import Photo from "../db/photoModel.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ const router = express.Router();
  * GET /api/user/list
  * Trả về danh sách users với chỉ _id, first_name, last_name, photo_count, comment_count (dùng cho sidebar).
  */
-router.get("/list", async (request, response) => {
+router.get("/list", verifyToken, async (request, response) => {
   try {
     const users = await User.find({}, "_id first_name last_name").lean();
     
@@ -46,7 +47,7 @@ router.get("/list", async (request, response) => {
  * GET /api/user/comments/:id
  * Lấy tất cả bình luận do user có id này viết, kèm theo thông tin bức ảnh.
  */
-router.get("/comments/:id", async (request, response) => {
+router.get("/comments/:id", verifyToken, async (request, response) => {
   const { id } = request.params;
   
   try {
@@ -90,7 +91,7 @@ router.get("/comments/:id", async (request, response) => {
  * GET /api/user/:id
  * Trả về thông tin chi tiết của user theo id.
  */
-router.get("/:id", async (request, response) => {
+router.get("/:id", verifyToken, async (request, response) => {
   const { id } = request.params;
   try {
     const user = await User.findById(id, "_id first_name last_name location description occupation");
