@@ -12,13 +12,11 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
-// Cấu hình multer để lưu ảnh upload vào thư mục images/
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, "../images"));
   },
   filename: function (req, file, cb) {
-    // Tạo tên file unique để tránh conflict
     const ext = path.extname(file.originalname);
     cb(null, `${uuidv4()}${ext}`);
   },
@@ -30,54 +28,46 @@ router.get("/photosOfUser/:id", verifyToken, async (request, response) => {
   const { id } = request.params;
 
   try {
-    // Kiểm tra user có tồn tại không
     const user = await User.findById(id);
     if (!user) {
       return response.status(400).json({ error: `User with id ${id} not found` });
     }
 
-    // Lấy tất cả ảnh của user
     const photos = await Photo.find({ user_id: id });
 
-    // Assemble response: thêm user info vào mỗi comment
-    const result = await Promise.all(
-      photos.map(async (photo) => {
-        // Tạo plain JS object để tránh Mongoose object restrictions
-        const photoObj = {
-          _id: photo._id,
-          user_id: photo.user_id,
-          file_name: photo.file_name,
-          date_time: photo.date_time,
-          comments: [],
-        };
+    const result = [];
+    for (const photo of photos) {
+      const photoObj = {
+        _id: photo._id,
+        user_id: photo.user_id,
+        file_name: photo.file_name,
+        date_time: photo.date_time,
+        comments: [],
+      };
 
-        if (photo.comments && photo.comments.length > 0) {
-          // Fetch user info cho mỗi comment
-          photoObj.comments = await Promise.all(
-            photo.comments.map(async (comment) => {
-              const commentUser = await User.findById(
-                comment.user_id,
-                "_id first_name last_name"
-              );
-              return {
-                _id: comment._id,
-                comment: comment.comment,
-                date_time: comment.date_time,
-                user: commentUser
-                  ? {
-                      _id: commentUser._id,
-                      first_name: commentUser.first_name,
-                      last_name: commentUser.last_name,
-                    }
-                  : null,
-              };
-            })
+      if (photo.comments && photo.comments.length > 0) {
+        for (const comment of photo.comments) {
+          const commentUser = await User.findById(
+            comment.user_id,
+            "_id first_name last_name"
           );
+          photoObj.comments.push({
+            _id: comment._id,
+            comment: comment.comment,
+            date_time: comment.date_time,
+            user: commentUser
+              ? {
+                  _id: commentUser._id,
+                  first_name: commentUser.first_name,
+                  last_name: commentUser.last_name,
+                }
+              : null,
+          });
         }
+      }
 
-        return photoObj;
-      })
-    );
+      result.push(photoObj);
+    }
 
     response.json(result);
   } catch (err) {
@@ -109,7 +99,6 @@ router.post("/commentsOfPhoto/:photo_id", verifyToken, async (request, response)
 
     await photo.save();
 
-    // Lấy user info để trả về cho frontend update ngay
     const commentUser = await User.findById(request.user._id, "_id first_name last_name");
     const addedComment = photo.comments[photo.comments.length - 1];
 

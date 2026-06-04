@@ -14,19 +14,15 @@ const app = express();
 
 dbConnect();
 
-// Middleware
 app.use(cors({
   origin: "*"
 }));
 app.use(express.json());
 
-// Serve static images
 app.use("/images", express.static(path.join(__dirname, "./images")));
 
-// Public routes (không cần auth)
 app.use("/api/admin", AdminRouter);
 
-// Routes
 app.use("/api/user", UserRouter);
 app.use("/api/photo", PhotoRouter);
 

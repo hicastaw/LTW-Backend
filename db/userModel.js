@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema({
   location: { type: String, default: "" },
   description: { type: String, default: "" },
   occupation: { type: String, default: "" },
-  // TH3: thêm login_name và password
   login_name: { type: String },
   password: { type: String },
 });

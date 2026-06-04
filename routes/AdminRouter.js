@@ -38,12 +38,10 @@ router.post("/login", async (request, response) => {
       return response.status(400).json({ error: `No user with login_name '${login_name}'` });
     }
 
-    // Check password 
     if (user.password && user.password !== password) {
       return response.status(400).json({ error: "Wrong password" });
     }
 
-    // Tạo JWT token (hết hạn sau 24 giờ)
     const payload = {
       _id: user._id,
       login_name: user.login_name,

@@ -11,27 +11,24 @@ router.get("/list", verifyToken, async (request, response) => {
   try {
     const users = await User.find({}, "_id first_name last_name").lean();
     
-    const usersWithCounts = await Promise.all(
-      users.map(async (user) => {
-        const photo_count = await Photo.countDocuments({ user_id: user._id });
-        
-        // Count all comments across all photos authored by this user
-        // Using $unwind to flatten comments, then match user_id
-        const commentAggregation = await Photo.aggregate([
-          { $unwind: "$comments" },
-          { $match: { "comments.user_id": user._id } },
-          { $count: "count" }
-        ]);
-        
-        const comment_count = commentAggregation.length > 0 ? commentAggregation[0].count : 0;
-        
-        return {
-          ...user,
-          photo_count,
-          comment_count,
-        };
-      })
-    );
+    const usersWithCounts = [];
+    for (const user of users) {
+      const photo_count = await Photo.countDocuments({ user_id: user._id });
+      
+      const commentAggregation = await Photo.aggregate([
+        { $unwind: "$comments" },
+        { $match: { "comments.user_id": user._id } },
+        { $count: "count" }
+      ]);
+      
+      const comment_count = commentAggregation.length > 0 ? commentAggregation[0].count : 0;
+      
+      usersWithCounts.push({
+        ...user,
+        photo_count,
+        comment_count,
+      });
+    }
 
     response.json(usersWithCounts);
   } catch (err) {
@@ -47,7 +44,6 @@ router.get("/comments/:id", verifyToken, async (request, response) => {
   try {
     const userId = new mongoose.Types.ObjectId(id);
     
-    // Tìm tất cả các ảnh có chứa comment của user này
     const photosWithUserComments = await Photo.find({
       "comments.user_id": userId
     });
@@ -55,7 +51,6 @@ router.get("/comments/:id", verifyToken, async (request, response) => {
     let allUserComments = [];
     
     photosWithUserComments.forEach(photo => {
-      // Lọc ra các comments của chính user này
       const userComments = photo.comments.filter(
         c => String(c.user_id) === String(userId)
       );
@@ -100,7 +95,6 @@ router.get("/:id", verifyToken, async (request, response) => {
 router.post("/", async (request, response) => {
   const { login_name, password, first_name, last_name, location, description, occupation } = request.body;
 
-  // Validate required fields
   if (!login_name) {
     return response.status(400).json({ error: "login_name is required" });
   }
@@ -112,7 +106,6 @@ router.post("/", async (request, response) => {
   }
 
   try {
-    // Check if login_name already exists
     const existingUser = await User.findOne({ login_name });
     if (existingUser) {
       return response.status(400).json({ error: `Login name '${login_name}' is already taken` });
