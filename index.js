@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
-import session from "express-session";
 import dbConnect from "./db/dbConnect.js";
 import UserRouter from "./routes/UserRouter.js";
 import PhotoRouter from "./routes/PhotoRouter.js";
@@ -17,21 +16,9 @@ dbConnect();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true, // cho phép gửi cookie session
+  origin: "*"
 }));
 app.use(express.json());
-
-// Session middleware
-app.use(session({
-  secret: "photo-sharing-secret-key",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false, // false vì dùng http trong dev
-    maxAge: 24 * 60 * 60 * 1000, // 1 ngày
-  },
-}));
 
 // Serve static images
 app.use("/images", express.static(path.join(__dirname, "./images")));
